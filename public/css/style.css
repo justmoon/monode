@@ -353,11 +353,17 @@ h2 {
 }
 
 #serverlist_overview .service .graph {
+	display: inline;
 	padding: 0 0 0 4px;
+	width: 40px;
+	height: 20px;
 }
 
-#serverlist_overview .service .graph span {
+#serverlist_overview .service .graph div {
+	display: inline;
 	padding-left: 4px;
+	width: 40px;
+	height: 20px;
 }
 
 #main {
@@ -392,6 +398,7 @@ h2 {
 }
 
 #overview_graph {
+	width: 750px;
 	height: 272px;
 	margin: 0 0 7px 0;
 }

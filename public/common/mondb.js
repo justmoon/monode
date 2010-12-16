@@ -1,6 +1,6 @@
 (function (Mondb){
 	var isArray = Array.isArray ? Array.isArray : function (s) {
-		return toString.call(s) === '[object Array]';
+		return Object.prototype.toString.call(s) === '[object Array]';
 	};
 
 	var enforceArray = function (s) {
