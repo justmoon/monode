@@ -1,6 +1,13 @@
 $((function () {
 	var Monode = window["Monode"] = {};
 
+	if (!window.console) {
+		window.console = {log: function () {}, error: function () {}};
+	}
+	if (!console.exception) {
+		console.exception = console.error;
+	}
+
 	var config = Monode.config = {};
 	var db = Monode.db = null;
 
