@@ -126,7 +126,7 @@ $((function () {
 			Monode.redrawOverviewTimer = null;
 		}
 	};
-	
+
 	Monode.overviewSparklinesOptions = {
 		series: {
 			color: '#eee',
@@ -147,32 +147,24 @@ $((function () {
 			show: false
 	    }
 	};
-	Monode.drawOverviewSparkline = function (container, data, startTime, endTime) {
-		var graphOptions = $.extend(
-			true, {}, Monode.overviewSparklinesOptions,
-			{
-				xaxis: {
-					min: startTime,
-					max: endTime
-				}
-			}
-		);
+	Monode.drawOverviewSparkline = function (container, data, extraOptions) {
+		var graphOptions = $.extend(true, {}, Monode.overviewSparklinesOptions);
 		var graph = $('<div/>')
 			.appendTo(container)
 		;
 
-		// Color the last point red.
-		var redDotSeries = {
-			data: [ data[data.length - 1] ],
+		/*// Color the last point red.
+		data.push({
+			data: [ data[0][data.length - 1] ],
 			points: {
 				show: true,
 				radius: 1,
 				fillColor: '#ff0000'
 			},
 			color: '#ff0000'
-		};
+		});*/
 
-		$.plot(graph, [data, redDotSeries], graphOptions);
+		$.plot(graph, data, graphOptions);
 	};
 
 	Monode.setupMondbEvents = function (db) {
@@ -249,30 +241,69 @@ $((function () {
 				var startTime = endTime - 90000;
 
 				// CPU sparkline
-				var cpuData = Monode.db
-					.getSeries('cpuusr', server, service)
-					.getRange(startTime);
+				var cpuSysData = {
+					stack: 0,
+					data: Monode.db
+						.getSeries('cpusys', server, service)
+						.getRange(startTime),
+					lines: {
+						lineWidth: 0,
+						fillColor: "#777"
+					}
+				};
+				var cpuUsrData = {
+					stack: 0,
+					data: Monode.db
+						.getSeries('cpuusr', server, service)
+						.getRange(startTime),
+					lines: {
+						fillColor: "#555"
+					}
+				};
+				var redDot = {
+					stack: 0,
+					data: [ [ cpuSysData.data[cpuSysData.data.length - 1][0], 0 ] ],
+					lines: {
+						show: false
+					},
+					points: {
+						show: true,
+						radius: 1,
+						fillColor: '#ff0000'
+					},
+					color: '#ff0000'
+				};
 
-				if (cpuData.length > 2) {
+				if (cpuUsrData.data.length > 2) {
 					Monode.drawOverviewSparkline(
-						serviceEl.find('.graph.cpu'), cpuData, startTime, endTime);
+						serviceEl.find('.graph.cpu'), [cpuSysData, cpuUsrData, redDot], {
+							stack: true,
+							xaxis: {
+								min: startTime,
+								max: endTime
+							}
+						}
+					);
 				}
 
 				// Memory sparkline
 				var memData = Monode.db
 					.getSeries('mempct', server, service)
 					.getRange(startTime);
-				
+
 				if (memData.length > 2) {
 					Monode.drawOverviewSparkline(
-						serviceEl.find('.graph.mem'), memData, startTime, endTime);
+						serviceEl.find('.graph.mem'), [memData], {xaxis:{
+							min: startTime,
+							max: endTime
+						}});
 				}
 			}
 
 			serviceEl.addClass(Math.round(service.status) == 0 ? "ok" : "notok");
 		};
 		db.onmonevent = function (event) {
-			console.log(event);
+			console.log("onmonevent", event);
 			var alertEl = $('<li/>');
 			alertEl.append(
 				$('<span/>')
