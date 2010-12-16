@@ -260,7 +260,7 @@ $((function () {
 						fillColor: "#555"
 					}
 				};
-				var redDot = {
+				var cpuRedDot = {
 					stack: 0,
 					data: [ [ cpuSysData.data[cpuSysData.data.length - 1][0], 0 ] ],
 					lines: {
@@ -276,8 +276,8 @@ $((function () {
 
 				if (cpuUsrData.data.length > 2) {
 					Monode.drawOverviewSparkline(
-						serviceEl.find('.graph.cpu'), [cpuSysData, cpuUsrData, redDot], {
-							stack: true,
+						serviceEl.find('.graph.cpu'),
+						[cpuSysData, cpuUsrData, cpuRedDot], {
 							xaxis: {
 								min: startTime,
 								max: endTime
@@ -290,13 +290,29 @@ $((function () {
 				var memData = Monode.db
 					.getSeries('mempct', server, service)
 					.getRange(startTime);
+				
+				var memRedDot = {
+					data: [ memData[memData.length - 1] ],
+					lines: {
+						show: false
+					},
+					points: {
+						show: true,
+						radius: 1,
+						fillColor: '#ff0000'
+					},
+					color: '#ff0000'
+				};
 
 				if (memData.length > 2) {
 					Monode.drawOverviewSparkline(
-						serviceEl.find('.graph.mem'), [memData], {xaxis:{
-							min: startTime,
-							max: endTime
-						}});
+						serviceEl.find('.graph.mem'), [memData, memRedDot], {
+							xaxis: {
+								min: startTime,
+								max: endTime
+							}
+						}
+					);
 				}
 			}
 
