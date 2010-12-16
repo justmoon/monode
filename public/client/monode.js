@@ -43,12 +43,17 @@ $((function () {
 		socket.connect();
 	};
 
+	Monode.currentPage = 'overview';
+
 	Monode.showPage = function (pagename) {
 		mainEl.children('.page').hide();
 		$('#'+pagename).show();
 
+		Monode.currentPage = pagename;
+
 		if (pagename == "overview") {
 			serverlistEl.addClass('overview-mode');
+			Monode.redrawOverview();
 		} else {
 			serverlistEl.removeClass('overview-mode');
 		}
@@ -66,6 +71,54 @@ $((function () {
 			serverPage.appendTo(mainEl);
 		}
 		Monode.showPage('serverpage-'+serverId);
+	};
+
+	Monode.overviewGraphOptions = {
+		series: {
+			lines: { show: true },
+			points: { show: false }
+		},
+		legend: {
+			show: true
+		},
+		xaxis: {
+			tickFormatter: function (data) {
+				return new Date(data).format('d-m-Y H:i:s');
+			}
+		},
+		yaxis: {
+			max: 100
+		},
+		grid: {
+			backgroundColor: { colors: ["#fff", "#eee"] }
+		}
+	};
+	Monode.overviewRedrawInterval = 1500;
+	Monode.overviewRedrawTimer = null;
+	Monode.redrawOverview = function () {
+		if (Monode.redrawOverviewTimer) {
+			clearTimeout(Monode.redrawOverviewTimer);
+		}
+
+		var data = [];
+		for (var i in Monode.db.db.server) {
+			var timeseries;
+			if (timeseries = Monode.db.series[i+'-cpuusr']) {
+
+				var endTime = (new Date()).getTime();
+				var startTime = endTime - 90000;
+
+				data.push(timeseries.getRange(startTime));
+			}
+		}
+		$.plot('#overview_graph', data, Monode.overviewGraphOptions);
+
+		if (Monode.currentPage == 'overview') {
+			Monode.redrawOverviewTimer =
+				setTimeout(arguments.callee, Monode.overviewRedrawInterval);
+		} else {
+			Monode.redrawOverviewTimer = null;
+		}
 	};
 
 	Monode.setupMondbEvents = function (db) {
@@ -213,6 +266,7 @@ $((function () {
 				if (!db) db = Monode.db = Mondb.create();
 				Monode.setupMondbEvents(db);
 				db.load(message[1]);
+				if (Monode.currentPage == "overview") Monode.redrawOverview();
 				break;
 
 			case 'heartbeat':
