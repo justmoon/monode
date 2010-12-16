@@ -104,7 +104,6 @@ $((function () {
 		for (var i in Monode.db.db.server) {
 			var timeseries;
 			if (timeseries = Monode.db.series[i+'-cpuusr']) {
-
 				var endTime = (new Date()).getTime();
 				var startTime = endTime - 90000;
 
@@ -120,23 +119,14 @@ $((function () {
 			Monode.redrawOverviewTimer = null;
 		}
 	};
-
-				var chartOpt = {
-					minSpotColor: false,
-					maxSpotColor: false,
-					lineColor: '#eee',
-					fillColor: '#555',
-					width: 40,
-					height: 20,
-					chartRangeMin: 0,
-					chartRangeMax: 100
-				};
-
+	
 	Monode.overviewSparklinesOptions = {
 		series: {
 			color: '#eee',
 			lines: {
-				lineWidth: 0.8
+				lineWidth: 0.8,
+				fill: true,
+				fillColor: '#555'
 			},
 			shadowSize: 0
 		},

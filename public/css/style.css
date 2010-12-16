@@ -353,17 +353,17 @@ h2 {
 }
 
 #serverlist_overview .service .graph {
-	display: inline;
-	padding: 0 0 0 4px;
-	width: 40px;
-	height: 20px;
+	display: inline-block;
+	position: relative;
+	padding: 0 42px 0 4px;
 }
 
 #serverlist_overview .service .graph div {
-	display: inline;
-	padding-left: 4px;
+	position: absolute;
+	top: 2px;
+	right: 0;
 	width: 40px;
-	height: 20px;
+	height: 20px;;
 }
 
 #main {
