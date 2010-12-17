@@ -7,18 +7,29 @@
   <dt>Kernel</dt>
   <dd class="monit_id"><%=server.platform.name%> <%=server.platform.release%></dd>
 </dt>
-<div class="service">
+<%
+for (var i in server.service) {
+	var service = server.service[i];
+%>
+<div class="service <%=service.status == 0 ? "ok" : "notok" %>">
   <div class="title">
 	<div class="arrow"></div>
 	<span class="type">Service</span>
-	<span class="name">System</span>
+	<span class="name"><%=service.type == 5 ? 'System' : service.name %></span>
   </div>
   <div class="body" style="display: none">
+<% if (service.type == 3) { %>
 	<p>test</p>
 	<p>test</p>
 	<p>test</p>
 	<p>test</p>
 	<p>test</p>
+<% } else if (service.type == 5) { %>
+	
+<% } else { %>
+	<p>Error: Service type not yet supported.</p>
+<% } %>
   </div>
 </div>
+<% } %>
 <% console.log(server); %>

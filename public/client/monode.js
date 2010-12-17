@@ -135,10 +135,10 @@ $((function () {
 
 			if (bodyEl.is(":visible")) {
 				titleEl.parent().removeClass("expanded");
-				bodyEl.hide("slow");
+				bodyEl.slideUp("slow");
 			} else {
 				titleEl.parent().addClass("expanded");
-				bodyEl.show("slow");
+				bodyEl.slideDown("slow");
 			}
 		});
 	};
