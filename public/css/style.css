@@ -33,7 +33,7 @@ time, mark, audio, video {
   font-size:100%;
   vertical-align:baseline;
   background:transparent;
-}                  
+}
 
 article, aside, figure, footer, header, 
 hgroup, nav, section { display:block; }
@@ -84,10 +84,10 @@ select, input, textarea { font:99% sans-serif; }
  * en.wikipedia.org/wiki/MediaWiki_talk:Common.css/Archive_11#Teletype_style_fix_for_Chrome
  */
 pre, code, kbd, samp { font-family: monospace, sans-serif; }
- 
 
 
-/* 
+
+/*
  * minimal base styles 
  */
 
@@ -97,14 +97,14 @@ body, select, input, textarea { color:#444; }
 
 /* Headers (h1,h2,etc) have no default font-size or margin,
    you'll want to define those yourself. */ 
- 
+
 /* www.aestheticallyloyal.com/public/optimize-legibility/ */ 
 h1,h2,h3,h4,h5,h6 { font-weight: bold; text-rendering: optimizeLegibility; }
 
 /* maxvoltar.com/archive/-webkit-font-smoothing */
 html { -webkit-font-smoothing: antialiased; }
 
- 
+
 /* Accessible focus treatment: people.opera.com/patrickl/experiments/keyboard/test */
 a:hover, a:active { outline: none; }
 
@@ -123,9 +123,9 @@ td, td img { vertical-align:top; }
 sub { vertical-align: sub; font-size: smaller; }
 sup { vertical-align: super; font-size: smaller; }
 
-pre { 
-  padding: 15px; 
-  
+pre {
+  padding: 15px;
+
   /* www.pathf.com/blogs/2008/05/formatting-quoted-code-in-blog-posts-css21-white-space-pre-wrap/ */
   white-space: pre; /* CSS2 */
   white-space: pre-wrap; /* CSS 2.1 */
@@ -150,24 +150,24 @@ label, input[type=button], input[type=submit], button { cursor: pointer; }
 ::selection { background:#FF5E99; color:#fff; text-shadow: none; } 
 
 /*  j.mp/webkit-tap-highlight-color */
-a:link { -webkit-tap-highlight-color: #FF5E99; } 
+a:link { -webkit-tap-highlight-color: #FF5E99; }
 
 
 /* always force a scrollbar in non-IE */
 html { overflow-y: scroll; }
 
-/* make buttons play nice in IE:    
+/* make buttons play nice in IE:
    www.viget.com/inspire/styling-the-button-element-in-internet-explorer/ */
 button {  width: auto; overflow: visible; }
  
-/* bicubic resizing for non-native sized IMG: 
+/* bicubic resizing for non-native sized IMG:
    code.flickr.com/blog/2008/11/12/on-ui-quality-the-little-things-client-side-image-resizing/ */
 .ie7 img { -ms-interpolation-mode: bicubic; }
 
 
 
-/* 
- * Non-semantic helper classes 
+/*
+ * Non-semantic helper classes
  */
 
 /* for image replacement */
@@ -175,12 +175,12 @@ button {  width: auto; overflow: visible; }
 
 /* Hide for both screenreaders and browsers
    css-discuss.incutio.com/wiki/Screenreader_Visibility */
-.hidden { display:none; visibility:hidden; } 
+.hidden { display:none; visibility:hidden; }
 
-/* Hide only visually, but have it available for screenreaders 
-   www.webaim.org/techniques/css/invisiblecontent/ 
+/* Hide only visually, but have it available for screenreaders
+   www.webaim.org/techniques/css/invisiblecontent/
    Solution from: j.mp/visuallyhidden - Thanks Jonathan Neal! */
-.visuallyhidden { position:absolute !important;    
+.visuallyhidden { position:absolute !important;
   clip: rect(1px 1px 1px 1px); /* IE6, IE7 */
   clip: rect(1px, 1px, 1px, 1px); }
 
@@ -198,10 +198,10 @@ button {  width: auto; overflow: visible; }
 
 
  /* Primary Styles
-    Author: 
+    Author:
  */
 
-body {	
+body {
 	text-align: center;
 	font-family: GillSans, Calibri, Trebuchet, sans-serif;
 	background-color: #f3f3f3;
@@ -417,16 +417,128 @@ h2 {
 	border: 1px solid #e3e3e3;
 }
 
+.serverpage h1 {
+	position: relative;
+	font-size: 250%;
+	padding: 35px 0 4px 36px;
+	margin: 0 0 4px;
+	background-color: #333;
+	color: #fbfbfb;
+	background: url("../images/alert-overlay.png") repeat-x scroll 0 0 #333;
+	-moz-border-radius: 0 0 0 5px;
+	border-radius: 0 0 0 5px;
+	text-shadow: 0 -1px 1px rgba(0,0,0,0.9);
+}
+
+.serverpage .status {
+	position: absolute;
+	left: 2px;
+	bottom: 3px;
+	width: 35px;
+	height: 35px;
+	background-repeat: no-repeat;
+}
+
+.serverpage.ok .status {
+	background-image: url(../images/led-green.png);
+}
+
+.serverpage dl.properties {
+	margin: 4px;
+}
+.serverpage .properties dt, .serverpage .properties dd {
+	font-size: 134%;
+	background-color: #fafafa;
+	padding: 2px 6px;
+}
+
+.serverpage .properties dt {
+	font-size: 100%;
+	text-transform: uppercase;
+	background-color: #eee;
+	margin-top: 8px;
+	padding: 1px 6px;
+}
+
+.serverpage .service {
+	margin: 4px;
+}
+
+.serverpage .service .title {
+	position: relative;
+	-moz-border-radius: 5px;
+	border-radius: 5px;
+	background: url("../images/alert-overlay.png") repeat-x scroll 0 0 #333;
+	color: #fff;
+	padding: 5px;
+	font-size: 113%;
+	cursor: pointer;
+}
+
+.serverpage .service.expanded .title {
+	-moz-border-radius: 5px 5px 0 0;
+	border-radius: 5px 5px 0 0;
+}
+
+.serverpage .service .type {
+	display: inline-block;
+	text-transform: uppercase;
+	font-weight: bold;
+	color: #bbb;
+	font-size: 114%;
+	padding: 0 7px 0 2px;
+	border-right: 1px solid #999;
+	margin-right: 1px;
+}
+
+.serverpage .service .name {
+	font-weight: bold;
+	font-size: 114%;
+	margin-left: 2px;
+}
+
+.serverpage .service.expanded .type {
+	display: block;
+	font-size: 87%;
+	border: 0;
+}
+
+.serverpage .service.expanded .name {
+	display: block;
+	font-size: 114%;
+}
+
+.serverpage .title .arrow {
+	position: absolute;
+	top: 7px;
+	right: 7px;
+	width: 14px;
+	height: 14px;
+	background: url("../images/arrow-expand-collapse.png") no-repeat scroll 0 0;
+}
+
+.serverpage .service.expanded .title .arrow {
+	background-position: 0 -16px;
+}
+
+.serverpage .service .body {
+	background-color: #ddd;
+	-moz-border-radius: 0 0 5px 5px;
+	border-radius: 0 0 5px 5px;
+	padding: 5px !important;
+	width: auto !important;
+}
+
 /*
  * ZURB Awesome Buttons
  */
 
 .awesome, .awesome:visited {
 	background: #222 url(../images/alert-overlay.png) repeat-x;
-	padding: 5px 10px 6px; 
-	color: #fff; 
+	padding: 5px 10px 6px;
+	color: #fff;
 	text-decoration: none;
-	-moz-border-radius: 5px; 
+	-moz-border-radius: 5px;
 	-webkit-border-radius: 5px;
 	-moz-box-shadow: 0 1px 3px rgba(0,0,0,0.5);
 	-webkit-box-shadow: 0 1px 3px rgba(0,0,0,0.5);

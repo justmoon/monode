@@ -1,0 +1,24 @@
+<h1><div class="status"><div></div></div><%=server.hostname%></h1>
+<dl class="properties">
+  <dt>Uptime</dt>
+  <dd class="uptime"></dd>
+  <dt>Monit ID</dt>
+  <dd class="monit_id"><%=server.id%></dd>
+  <dt>Kernel</dt>
+  <dd class="monit_id"><%=server.platform.name%> <%=server.platform.release%></dd>
+</dt>
+<div class="service">
+  <div class="title">
+	<div class="arrow"></div>
+	<span class="type">Service</span>
+	<span class="name">System</span>
+  </div>
+  <div class="body" style="display: none">
+	<p>test</p>
+	<p>test</p>
+	<p>test</p>
+	<p>test</p>
+	<p>test</p>
+  </div>
+</div>
+<% console.log(server); %>

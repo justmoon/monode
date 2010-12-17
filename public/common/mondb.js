@@ -115,7 +115,7 @@
 
 		function applyServiceHeartbeat(service, server, svchb)
 		{
-			service.status = svchb.status;
+			service.status = parseInt(svchb.status);
 			service.type = parseInt(version == 2 ? svchb.type : svchb["@"].type);
 			service.updated = parseInt(svchb.collected_sec)*1000 + Math.round(svchb.collected_usec/1000);
 
@@ -220,6 +220,18 @@
 
 	Database.prototype.getServer = function (serverId) {
 		return this.db.server[serverId];
+	};
+
+	Database.prototype.getServerStatus = function (server) {
+		var ok = true;
+
+		for (var i = 0; i < server.service.length; i++) {
+			if (server.service[i].status != 0) {
+				ok = false;
+			}
+		}
+
+		return ok ? "ok" : "notok";
 	};
 
 	var seriesTypes = Mondb["seriesTypes"] = {

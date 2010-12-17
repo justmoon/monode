@@ -60,24 +60,87 @@ $((function () {
 
 		if (pagename == "overview") {
 			serverlistEl.addClass('overview-mode');
-			Monode.redrawOverview();
 		} else {
 			serverlistEl.removeClass('overview-mode');
 		}
+
+		Monode.updatePage();
+	};
+
+	Monode.pageUpdateInterval = 1500;
+	Monode.pageUpdateTimer = null;
+	Monode.updatePage = function () {
+		if (Monode.pageUpdateTimer) {
+			clearTimeout(Monode.pageUpdateTimer);
+		}
+
+		var pageEl = $("#"+Monode.currentPage);
+
+		if (Monode.currentPage == "overview") {
+			var data = [];
+			for (var i in Monode.db.db.server) {
+				var timeseries;
+				if (timeseries = Monode.db.series[i+'-cpuusr']) {
+					var endTime = (new Date()).getTime();
+					var startTime = endTime - 90000;
+
+					data.push(timeseries.getRange(startTime));
+				}
+			}
+			$.plot('#overview_graph', data, Monode.overviewGraphOptions);
+		} else if (Monode.currentPage.substr(0, 11) == "serverpage-") {
+			var server = Monode.db.getServer(Monode.currentPage.substr(11));
+			var serverStatus = Monode.db.getServerStatus(server);
+
+			pageEl.removeClass("notok ok").addClass(serverStatus);
+
+			var uptimeEl = pageEl.find(".properties .uptime");
+			uptimeEl.text(server.uptime);
+		}
+
+		Monode.pageUpdateTimer =
+			setTimeout(arguments.callee, Monode.pageUpdateInterval);
 	};
 
 	Monode.openServerPage = function (serverId) {
 		var serverPage = $('#serverpage-'+serverId);
-		var server = Monode.db.getServer(serverId);
 
 		if (!serverPage.length) {
-			serverPage = $('<div/>');
-			serverPage.attr('id', 'serverpage-'+serverId);
-			serverPage.addClass('page serverpage');
-			serverPage.append($('<h1/>').text(server.hostname));
-			serverPage.appendTo(mainEl);
+			Monode.createServerPage(serverId);
 		}
 		Monode.showPage('serverpage-'+serverId);
+
+		Monode.updatePage();
+	};
+
+	Monode.createServerPage = function (serverId) {
+		var server = Monode.db.getServer(serverId);
+
+		var data = {
+			server: server
+		};
+
+		serverPage = $('<div/>');
+		serverPage.attr('id', 'serverpage-'+serverId);
+		serverPage.addClass('page serverpage');
+
+		var html = new EJS({url: 'templates/serverpage.ejs'}).render(data);
+		serverPage.html(html);
+
+		serverPage.appendTo(mainEl);
+
+		serverPage.find(".service .title").click(function () {
+			var titleEl = $(this);
+			var bodyEl = titleEl.parent().find('.body');
+
+			if (bodyEl.is(":visible")) {
+				titleEl.parent().removeClass("expanded");
+				bodyEl.hide("slow");
+			} else {
+				titleEl.parent().addClass("expanded");
+				bodyEl.show("slow");
+			}
+		});
 	};
 
 	Monode.overviewGraphOptions = {
@@ -98,32 +161,6 @@ $((function () {
 		},
 		grid: {
 			backgroundColor: { colors: ["#fff", "#eee"] }
-		}
-	};
-	Monode.overviewRedrawInterval = 1500;
-	Monode.overviewRedrawTimer = null;
-	Monode.redrawOverview = function () {
-		if (Monode.redrawOverviewTimer) {
-			clearTimeout(Monode.redrawOverviewTimer);
-		}
-
-		var data = [];
-		for (var i in Monode.db.db.server) {
-			var timeseries;
-			if (timeseries = Monode.db.series[i+'-cpuusr']) {
-				var endTime = (new Date()).getTime();
-				var startTime = endTime - 90000;
-
-				data.push(timeseries.getRange(startTime));
-			}
-		}
-		$.plot('#overview_graph', data, Monode.overviewGraphOptions);
-
-		if (Monode.currentPage == 'overview') {
-			Monode.redrawOverviewTimer =
-				setTimeout(arguments.callee, Monode.overviewRedrawInterval);
-		} else {
-			Monode.redrawOverviewTimer = null;
 		}
 	};
 
@@ -152,17 +189,6 @@ $((function () {
 		var graph = $('<div/>')
 			.appendTo(container)
 		;
-
-		/*// Color the last point red.
-		data.push({
-			data: [ data[0][data.length - 1] ],
-			points: {
-				show: true,
-				radius: 1,
-				fillColor: '#ff0000'
-			},
-			color: '#ff0000'
-		});*/
 
 		$.plot(graph, data, graphOptions);
 	};
@@ -290,7 +316,7 @@ $((function () {
 				var memData = Monode.db
 					.getSeries('mempct', server, service)
 					.getRange(startTime);
-				
+
 				var memRedDot = {
 					data: [ memData[memData.length - 1] ],
 					lines: {
@@ -351,7 +377,7 @@ $((function () {
 				if (!db) db = Monode.db = Mondb.create();
 				Monode.setupMondbEvents(db);
 				db.load(message[1]);
-				if (Monode.currentPage == "overview") Monode.redrawOverview();
+				Monode.updatePage();
 				break;
 
 			case 'heartbeat':
