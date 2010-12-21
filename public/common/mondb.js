@@ -19,6 +19,33 @@
 		return new Database();
 	};
 
+	/**
+	 * Mondb settings.
+	 */
+	var s = Mondb.settings = {};
+
+	/**
+	 * Downtime grace factor.
+	 *
+	 * This factor denotes how many times the poll period we will wait before
+	 * considering the host down.
+	 */
+	s.graceFactor = 2;
+
+	/**
+	 * Time offset.
+	 *
+	 * Because Mondb is run distributedly, the server and client times may differ.
+	 * Therefore, we send the time with every update and maintain an offset on
+	 * the client to account for this.
+	 */
+	s.timeCorrection = 0;
+
+	Mondb.getTime = function ()
+	{
+		return new Date().getTime() + s.timeCorrection;
+	};
+
 	Database.prototype.load = function (db)
 	{
 		var i, j;
@@ -81,11 +108,19 @@
 		function applyHeartbeat(server, hb)
 		{
 			server.incarnation = version == 2 ? hb["@"].incarnation : hb.server.incarnation;
-			server.uptime = parseInt(hb.server.uptime);
 			server.poll = parseInt(hb.server.poll);
 			server.startdelay = parseInt(hb.server.startdelay);
 			server.hostname = hb.server.localhostname;
 			server.controlfile = hb.server.controlfile;
+			server.monitUptime = parseInt(hb.server.uptime);
+
+			// Process downtime
+			var latestDowntime = ServerDressing.prototype.getDowntime.apply(server);
+			if (latestDowntime != server.downtime) {
+				server.downtime = latestDowntime;
+				server.upSince = Mondb.getTime();
+			}
+			server.lastseen = Mondb.getTime();
 
 			var services = enforceArray(version == 2 ? hb.services.service : hb.service);
 
@@ -189,10 +224,13 @@
 
 		var server;
 		if ("undefined" == typeof (server = this.db.server[hb.server.id])) {
-			server = this.db.server[hb.server.id] = {};
+			server = this.db.server[hb.server.id] = {service: {}};
 			server.id = version == 2 ? hb["@"].id : hb.server.id;
 			server.platform = hb.platform;
 			server.platform.cpu = parseInt(server.platform.cpu);
+			server.downtime = 0;
+			server.lastseen = Mondb.getTime();
+			server.knownSince = Mondb.getTime();
 			applyHeartbeat(server, hb);
 			this.onserveradd.call(this, server);
 		} else {
@@ -331,11 +369,22 @@
 		return this.store.slice(firstIndex, lastIndex);
 	};
 
-	NullTimeSeries = {
+	var NullTimeSeries = Mondb["NullTimeSeries"] = {
 		load: function (data) {},
 		tick: function (t, x) {},
 		cull: function () {},
 		getRange: function (from, to) {return [];}
+	};
+
+	var ServerDressing = Mondb["ServerDressing"] = function () {};
+
+	ServerDressing.prototype.getDowntime = function () {
+		if ((Mondb.getTime() - this.lastseen) >
+			(this.poll * 1000 * s.graceFactor)) {
+			return this.downtime + Mondb.getTime() - this.lastseen;
+		} else {
+			return this.downtime;
+		}
 	};
 
 })(typeof exports === 'undefined' ? (this["Mondb"]={}) : exports);

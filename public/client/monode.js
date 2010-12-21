@@ -421,6 +421,7 @@ $((function () {
 		try {
 			switch (message[0]) {
 			case 'initial':
+				Mondb.settings.timeCorrection = message[2] - new Date().getTime();
 				if (!db) db = Monode.db = Mondb.create();
 				Monode.setupMondbEvents(db);
 				db.load(message[1]);
@@ -428,6 +429,7 @@ $((function () {
 				break;
 
 			case 'heartbeat':
+				Mondb.settings.timeCorrection = message[2] - new Date().getTime();
 				if (!db) Monode.error("No initial state transferred.");
 				db.parseHeartbeat(message[1]);
 				break;

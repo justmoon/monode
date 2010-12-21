@@ -32,7 +32,7 @@ var server = http.createServer(function (request, response) {
 		request.addListener('end', function () {
 			var parser = new xml2js.Parser();
 			parser.addListener('end', function (result) {
-				socket.broadcast(JSON.stringify(['heartbeat', result]));
+				socket.broadcast(JSON.stringify(['heartbeat', result, new Date().getTime()]));
 				database.parseHeartbeat(result);
 			});
 			parser.parseString(content);
@@ -57,7 +57,7 @@ server.listen(config.port);
 
 var socket = io.listen(server);
 socket.on('connection', function(client) {
-	client.send(JSON.stringify(['initial', database.serialize()]));
+	client.send(JSON.stringify(['initial', database.serialize(), new Date().getTime()]));
 
 	client.on('message', function(message){
 	});
