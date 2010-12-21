@@ -1,4 +1,4 @@
-<h1><div class="status"><div></div></div><%=server.hostname%></h1>
+<h1 class="header"><div class="status"><div></div></div><%=server.hostname%></h1>
 <dl class="properties">
   <dt>Uptime</dt>
   <dd class="uptime"></dd>
@@ -17,19 +17,33 @@ for (var i in server.service) {
 	<span class="type">Service</span>
 	<span class="name"><%=service.type == 5 ? 'System' : service.name %></span>
   </div>
-  <div class="body" style="display: none">
 <% if (service.type == 3) { %>
+  <div class="body" style="display: none">
 	<p>test</p>
 	<p>test</p>
 	<p>test</p>
 	<p>test</p>
 	<p>test</p>
-<% } else if (service.type == 5) { %>
-	
-<% } else { %>
-	<p>Error: Service type not yet supported.</p>
-<% } %>
   </div>
+<% } else if (service.type == 5) { %>
+  <div class="body system" style="display: none">
+	<div class="cpustats">
+	  <h1>CPU (<%=server.platform.cpu%> core<%=server.platform.cpu==1 ? "" : "s"%>)</h1>
+	  <div class="cpugraph"></div>
+	</div>
+	<div class="memstats">
+	  <h1>Physical Memory</h1>
+	  <div class="memgraph"></div>
+	  <h1>Swap Memory</h1>
+	  <div class="swapgraph"></div>
+	</div>
+	<div class="clear"></div>
+  </div>
+<% } else { %>
+  <div class="body" style="display: none">
+	<p>Error: Service type not yet supported.</p>
+  </div>
+<% } %>
 </div>
 <% } %>
 <% console.log(server); %>

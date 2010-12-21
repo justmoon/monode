@@ -417,7 +417,7 @@ h2 {
 	border: 1px solid #e3e3e3;
 }
 
-.serverpage h1 {
+.serverpage h1.header {
 	position: relative;
 	font-size: 250%;
 	padding: 35px 0 4px 36px;
@@ -525,7 +525,35 @@ h2 {
 	background-color: #ddd;
 	-moz-border-radius: 0 0 5px 5px;
 	border-radius: 0 0 5px 5px;
-	padding: 5px;
+	padding: 8px 15px 15px;
+}
+
+.serverpage .service .body h1 {
+	font-size: 124%;
+	margin: 7px 0 3px 0;
+}
+
+.serverpage .service .system .cpustats {
+	float: left;
+	width: 450px;
+}
+
+.serverpage .service .system .memstats {
+	float: left;
+	width: 230px;
+	margin-left: 15px;
+}
+
+.serverpage .service .system .cpugraph {
+	width: 450px;
+	height: 150px;
+	background-color: #fff;
+}
+
+.serverpage .service .system .memgraph, .serverpage .service .system .swapgraph {
+	width: 230px;
+	height: 60px;
+	background-color: #fff;
 }
 
 /*
@@ -586,6 +614,10 @@ a.awesome, button.awesome {
 	display: inline-block;
 	font-size: 134%;
 	font-weight: bold;
+}
+
+.clear {
+	clear: both;
 }
 
 /* 
