@@ -96,6 +96,53 @@ $((function () {
 
 			var uptimeEl = pageEl.find(".properties .uptime");
 			uptimeEl.text(server.uptime);
+
+			pageEl.find('.service').each(function () {
+				var serviceEl = $(this);
+				var service = server.service[serviceEl.attr("data-name")];
+
+				var timeseries, data, startTime, endTime;
+
+				switch (service.type) {
+				case 5:
+					// CPU Graph
+					data = [];
+					if (timeseries = Monode.db.series[server.id+'-cpuusr']) {
+						endTime = (new Date()).getTime();
+						startTime = endTime - 90000;
+
+						data.push(timeseries.getRange(startTime));
+					}
+
+					$.plot(serviceEl.find(".cpugraph"), data);
+
+					// Mem Graph
+					data = [];
+					if (timeseries = Monode.db.series[server.id+'-mempct']) {
+						endTime = (new Date()).getTime();
+						startTime = endTime - 90000;
+
+						data.push(timeseries.getRange(startTime));
+
+						$.plot(serviceEl.find(".memgraph"), data);
+					}
+
+
+					// Swap Graph
+					data = [];
+					if (timeseries = Monode.db.series[server.id+'-swappct']) {
+						endTime = (new Date()).getTime();
+						startTime = endTime - 90000;
+
+						data.push(timeseries.getRange(startTime));
+
+						$.plot(serviceEl.find(".swapgraph"), data);
+					}
+
+					console.log(data);
+					break;
+				}
+			});
 		}
 
 		Monode.pageUpdateTimer =

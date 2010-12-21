@@ -152,6 +152,12 @@
 					.tick(service.updated, parseFloat(svchb.system.memory.percent));
 				self.getSeries('memkb', server, service)
 					.tick(service.updated, parseFloat(svchb.system.memory.kilobyte));
+				if ("undefined" != typeof svchb.system.swap) {
+					self.getSeries('swppct', server, service)
+						.tick(service.updated, parseFloat(svchb.system.swap.percent));
+					self.getSeries('swpkb', server, service)
+						.tick(service.updated, parseFloat(svchb.system.swap.kilobyte));
+				}
 				break;
 
 			case 6: // TYPE_FIFO

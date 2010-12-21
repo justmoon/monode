@@ -6,12 +6,12 @@
   <dd class="monit_id"><%=server.id%></dd>
   <dt>Kernel</dt>
   <dd class="monit_id"><%=server.platform.name%> <%=server.platform.release%></dd>
-</dt>
+</dl>
 <%
 for (var i in server.service) {
 	var service = server.service[i];
 %>
-<div class="service <%=service.status == 0 ? "ok" : "notok" %>">
+<div class="service <%=service.status == 0 ? "ok" : "notok" %>" data-name="<%=service.name%>">
   <div class="title">
 	<div class="arrow"></div>
 	<span class="type">Service</span>

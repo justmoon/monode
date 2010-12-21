@@ -525,12 +525,16 @@ h2 {
 	background-color: #ddd;
 	-moz-border-radius: 0 0 5px 5px;
 	border-radius: 0 0 5px 5px;
-	padding: 8px 15px 15px;
+	padding: 15px;
 }
 
 .serverpage .service .body h1 {
 	font-size: 124%;
 	margin: 7px 0 3px 0;
+}
+
+.serverpage .service .system {
+	padding-top: 8px;
 }
 
 .serverpage .service .system .cpustats {
