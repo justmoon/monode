@@ -183,7 +183,7 @@
 
 		var server;
 		if ("undefined" == typeof (server = this.db.server[hb.server.id])) {
-			server = this.db.server[hb.server.id] = {service: {}};
+			server = this.db.server[hb.server.id] = {};
 			server.id = version == 2 ? hb["@"].id : hb.server.id;
 			server.platform = hb.platform;
 			server.platform.cpu = parseInt(server.platform.cpu);
