@@ -64,7 +64,17 @@ $((function () {
 			serverlistEl.removeClass('overview-mode');
 		}
 
-		Monode.updatePage();
+		Monode.reinitializePage();
+	};
+
+	Monode.reinitializePage = function () {
+		var pageEl = $("#"+Monode.currentPage);
+
+		if (Monode.currentPage == "overview") {
+			Monode.reinitializeOverview();
+		} else if (Monode.currentPage.substr(0, 11) == "serverpage-") {
+			Monode.reinitializeServerPage(pageEl);
+		}
 	};
 
 	Monode.pageUpdateInterval = 1500;
@@ -76,73 +86,11 @@ $((function () {
 
 		var pageEl = $("#"+Monode.currentPage);
 
+
 		if (Monode.currentPage == "overview") {
-			var data = [];
-			for (var i in Monode.db.db.server) {
-				var timeseries;
-				if (timeseries = Monode.db.series[i+'-cpuusr']) {
-					var endTime = (new Date()).getTime();
-					var startTime = endTime - 90000;
-
-					data.push(timeseries.getRange(startTime));
-				}
-			}
-			$.plot('#overview_graph', data, Monode.overviewGraphOptions);
+			Monode.updateOverview();
 		} else if (Monode.currentPage.substr(0, 11) == "serverpage-") {
-			var server = Monode.db.getServer(Monode.currentPage.substr(11));
-			var serverStatus = Monode.db.getServerStatus(server);
-
-			pageEl.removeClass("notok ok").addClass(serverStatus);
-
-			var uptimeEl = pageEl.find(".properties .uptime");
-			uptimeEl.text(server.uptime);
-
-			pageEl.find('.service').each(function () {
-				var serviceEl = $(this);
-				var service = server.service[serviceEl.attr("data-name")];
-
-				var timeseries, data, startTime, endTime;
-
-				switch (service.type) {
-				case 5:
-					// CPU Graph
-					data = [];
-					if (timeseries = Monode.db.series[server.id+'-cpuusr']) {
-						endTime = (new Date()).getTime();
-						startTime = endTime - 90000;
-
-						data.push(timeseries.getRange(startTime));
-					}
-
-					$.plot(serviceEl.find(".cpugraph"), data);
-
-					// Mem Graph
-					data = [];
-					if (timeseries = Monode.db.series[server.id+'-mempct']) {
-						endTime = (new Date()).getTime();
-						startTime = endTime - 90000;
-
-						data.push(timeseries.getRange(startTime));
-
-						$.plot(serviceEl.find(".memgraph"), data);
-					}
-
-
-					// Swap Graph
-					data = [];
-					if (timeseries = Monode.db.series[server.id+'-swappct']) {
-						endTime = (new Date()).getTime();
-						startTime = endTime - 90000;
-
-						data.push(timeseries.getRange(startTime));
-
-						$.plot(serviceEl.find(".swapgraph"), data);
-					}
-
-					console.log(data);
-					break;
-				}
-			});
+			Monode.updateServerPage(pageEl);
 		}
 
 		Monode.pageUpdateTimer =
@@ -153,11 +101,11 @@ $((function () {
 		var serverPage = $('#serverpage-'+serverId);
 
 		if (!serverPage.length) {
-			Monode.createServerPage(serverId);
+			serverPage = Monode.createServerPage(serverId);
 		}
 		Monode.showPage('serverpage-'+serverId);
 
-		Monode.updatePage();
+		Monode.reinitializeServerPage(serverPage);
 	};
 
 	Monode.createServerPage = function (serverId) {
@@ -188,6 +136,75 @@ $((function () {
 				bodyEl.slideDown("fast");
 			}
 		});
+
+		return serverPage;
+	};
+
+	Monode.reinitializeServerPage = function (pageEl) {
+		console.log("sp reinit");
+		var server = Monode.db.getServer(pageEl.attr('id').substr(11));
+
+		pageEl.find('.service').each(function () {
+			var serviceEl = $(this);
+			var service = server.service[serviceEl.attr("data-name")];
+
+			Monode.updateServerPageService(server, service, serviceEl);
+		});
+
+		Monode.updateServerPage(pageEl);
+	};
+
+	Monode.updateServerPage = function (pageEl) {
+		var server = Monode.db.getServer(Monode.currentPage.substr(11));
+		var serverStatus = Monode.db.getServerStatus(server);
+
+		pageEl.removeClass("notok ok").addClass(serverStatus);
+
+		var uptimeEl = pageEl.find(".properties .uptime");
+		uptimeEl.text(server.uptime);
+	};
+
+	Monode.updateServerPageService = function (server, service, serviceEl) {
+		var timeseries, data, startTime, endTime;
+
+		switch (service.type) {
+		case 5:
+			// CPU Graph
+			data = [];
+			if (timeseries = Monode.db.series[server.id+'-cpuusr']) {
+				endTime = (new Date()).getTime();
+				startTime = endTime - 90000;
+
+				data.push(timeseries.getRange(startTime));
+			}
+
+			$.plot(serviceEl.find(".cpugraph"), data);
+
+			// Mem Graph
+			data = [];
+			if (timeseries = Monode.db.series[server.id+'-mempct']) {
+				endTime = (new Date()).getTime();
+				startTime = endTime - 90000;
+
+				data.push(timeseries.getRange(startTime));
+
+				$.plot(serviceEl.find(".memgraph"), data);
+			}
+
+
+			// Swap Graph
+			data = [];
+			if (timeseries = Monode.db.series[server.id+'-swappct']) {
+				endTime = (new Date()).getTime();
+				startTime = endTime - 90000;
+
+				data.push(timeseries.getRange(startTime));
+
+				$.plot(serviceEl.find(".swapgraph"), data);
+			}
+
+			break;
+		}
 	};
 
 	Monode.overviewGraphOptions = {
@@ -238,6 +255,117 @@ $((function () {
 		;
 
 		$.plot(graph, data, graphOptions);
+	};
+
+	Monode.reinitializeOverview = function () {
+		var overviewGraphEl = $('#overview_graph');
+
+		if (overviewGraphEl.is(":visible")) {
+			var timeseries, data, startTime, endTime;
+			data = [];
+			for (var i in Monode.db.db.server) {
+				if (timeseries = Monode.db.series[i+'-cpuusr']) {
+					endTime = (new Date()).getTime();
+					startTime = endTime - 90000;
+
+					data.push(timeseries.getRange(startTime));
+				}
+			}
+			$.plot(overviewGraphEl, data, Monode.overviewGraphOptions);
+		}
+
+		Monode.updateOverview();
+	};
+
+	Monode.updateOverview = function () {
+		// Nothing here yet
+	};
+
+	Monode.updateOverviewService = function (server, service, serviceEl) {
+		if (service.type == 5) {
+			serviceEl.find('.graph div').remove();
+
+			var endTime = service.updated;
+			var startTime = endTime - 90000;
+
+			// CPU sparkline
+			var cpuSysData = {
+				stack: 0,
+				data: Monode.db
+					.getSeries('cpusys', server, service)
+					.getRange(startTime),
+				lines: {
+					lineWidth: 0,
+					fillColor: "#777"
+				}
+			};
+			var cpuUsrData = {
+				stack: 0,
+				data: Monode.db
+					.getSeries('cpuusr', server, service)
+					.getRange(startTime),
+				lines: {
+					fillColor: "#555"
+				}
+			};
+
+			if (cpuUsrData.data.length > 2 && cpuSysData.data.length > 2) {
+				var cpuRedDot = {
+					stack: 0,
+					data: [ [ cpuSysData.data[cpuSysData.data.length - 1][0], 0 ] ],
+					lines: {
+						show: false
+					},
+					points: {
+						show: true,
+						radius: 1,
+						fillColor: '#ff0000'
+					},
+					color: '#ff0000'
+				};
+
+				Monode.drawOverviewSparkline(
+					serviceEl.find('.graph.cpu'),
+					[cpuSysData, cpuUsrData, cpuRedDot], {
+						xaxis: {
+							min: startTime,
+							max: endTime
+						}
+					}
+				);
+			}
+
+			// Memory sparkline
+			var memData = Monode.db
+				.getSeries('mempct', server, service)
+				.getRange(startTime);
+
+			var memRedDot = {
+				data: [ memData[memData.length - 1] ],
+				lines: {
+					show: false
+				},
+				points: {
+					show: true,
+					radius: 1,
+					fillColor: '#ff0000'
+				},
+				color: '#ff0000'
+			};
+
+			if (memData.length > 2) {
+				Monode.drawOverviewSparkline(
+					serviceEl.find('.graph.mem'), [memData, memRedDot], {
+						xaxis: {
+							min: startTime,
+							max: endTime
+						}
+					}
+				);
+			}
+		}
+
+		serviceEl.addClass(Math.round(service.status) == 0 ? "ok" : "notok");
 	};
 
 	Monode.setupMondbEvents = function (db) {
@@ -305,91 +433,16 @@ $((function () {
 		db.onservicechange = function (service, server) {
 			console.log("onservicechange", service);
 			var serverOverviewEl = $('#server-overview-'+server.id);
-			var serviceEl = serverOverviewEl.find('[data-name="'+service.name+'"]');
+			var serviceEl;
 
-			if (service.type == 5) {
-				serviceEl.find('.graph div').remove();
+			if (Monode.currentPage == "overview") {
+				serviceEl = serverOverviewEl.find('[data-name="'+service.name+'"]');
 
-				var endTime = service.updated;
-				var startTime = endTime - 90000;
-
-				// CPU sparkline
-				var cpuSysData = {
-					stack: 0,
-					data: Monode.db
-						.getSeries('cpusys', server, service)
-						.getRange(startTime),
-					lines: {
-						lineWidth: 0,
-						fillColor: "#777"
-					}
-				};
-				var cpuUsrData = {
-					stack: 0,
-					data: Monode.db
-						.getSeries('cpuusr', server, service)
-						.getRange(startTime),
-					lines: {
-						fillColor: "#555"
-					}
-				};
-				var cpuRedDot = {
-					stack: 0,
-					data: [ [ cpuSysData.data[cpuSysData.data.length - 1][0], 0 ] ],
-					lines: {
-						show: false
-					},
-					points: {
-						show: true,
-						radius: 1,
-						fillColor: '#ff0000'
-					},
-					color: '#ff0000'
-				};
-
-				if (cpuUsrData.data.length > 2) {
-					Monode.drawOverviewSparkline(
-						serviceEl.find('.graph.cpu'),
-						[cpuSysData, cpuUsrData, cpuRedDot], {
-							xaxis: {
-								min: startTime,
-								max: endTime
-							}
-						}
-					);
-				}
-
-				// Memory sparkline
-				var memData = Monode.db
-					.getSeries('mempct', server, service)
-					.getRange(startTime);
-
-				var memRedDot = {
-					data: [ memData[memData.length - 1] ],
-					lines: {
-						show: false
-					},
-					points: {
-						show: true,
-						radius: 1,
-						fillColor: '#ff0000'
-					},
-					color: '#ff0000'
-				};
-
-				if (memData.length > 2) {
-					Monode.drawOverviewSparkline(
-						serviceEl.find('.graph.mem'), [memData, memRedDot], {
-							xaxis: {
-								min: startTime,
-								max: endTime
-							}
-						}
-					);
-				}
+				Monode.updateOverviewService(server, service, serviceEl);
+			} else if (Monode.currentPage == "serverpage-"+server.id) {
+				serviceEl = $("#"+Monode.currentPage+' .service[data-name="'+service.name+'"]');
+				Monode.updateServerPageService(server, service, serviceEl);
 			}
-
-			serviceEl.addClass(Math.round(service.status) == 0 ? "ok" : "notok");
 		};
 		db.onmonevent = function (event) {
 			console.log("onmonevent", event);
@@ -425,7 +478,7 @@ $((function () {
 				if (!db) db = Monode.db = Mondb.create();
 				Monode.setupMondbEvents(db);
 				db.load(message[1]);
-				Monode.updatePage();
+				Monode.reinitializePage();
 				break;
 
 			case 'heartbeat':
