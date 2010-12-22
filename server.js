@@ -1,20 +1,33 @@
 require.paths.unshift(__dirname + "/public/common");
+require.paths.unshift(__dirname + "/lib");
 
+// Vendor dependencies
 var http = require('http'),
     sys  = require('sys'),
     yaml = require('yaml'),
     fs = require('fs'),
     io = require('socket.io'),
-    nodeStatic = require('node-static')
-    querystring = require('querystring')
-    xml2js = require('xml2js');
+	nodeStatic = require('node-static'),
+	querystring = require('querystring'),
+	xml2js = require('xml2js'),
+	mongoose = require('mongoose').Mongoose;
 
+// Internal dependencies
 var Mondb = require('mondb');
+var MondbPersist = require('mondb-persist');
+
+// Setup
+var db = mongoose.connect('mongodb://localhost/monode');
+var User = db.model("User");
 
 var config = yaml.eval(fs.readFileSync('config.yml').toString());
 
 var database = Mondb.create();
+MondbPersist.persist(database, db, 1);
 
+// Enable
+
+// HTTP Server
 var server = http.createServer(function (request, response) {
 	var file = new nodeStatic.Server('./public', {
 		cache: false
@@ -55,6 +68,7 @@ var server = http.createServer(function (request, response) {
 
 server.listen(config.port);
 
+// Socket.io server
 var socket = io.listen(server);
 socket.on('connection', function(client) {
 	client.send(JSON.stringify(['initial', database.serialize(), new Date().getTime()]));

@@ -92,8 +92,10 @@
 		this.db.seriesCache = {};
 
 		for (var i in this.series) {
-			if (this.series[i].type != "sec150") continue;
-			this.db.seriesCache[i] = this.series[i].store;
+			var cache;
+			if (cache = this.series[i].getCacheData()) {
+				this.db.seriesCache[i] = cache;
+			}
 		}
 
 		return this.db;
@@ -248,7 +250,7 @@
 	Database.prototype.getSeries = function (seriesKey, server, service) {
 		// By default, we cache the last 150 seconds of any time series.
 		if ("undefined" == typeof this.series[server.id+"-"+seriesKey]) {
-			this.series[server.id+"-"+seriesKey] = new TimeSeries(seriesTypes["sec150"]);
+			this.series[server.id+"-"+seriesKey] = this.hookSeriesCreate(seriesKey, server, service);
 		}
 
 		return this.series[server.id+"-"+seriesKey];
@@ -261,6 +263,10 @@
 	Database.prototype.onservicechange = function (service, server) {};
 	Database.prototype.onmonevent = function (server) {};
 	Database.prototype.onmoneventclear = function (server) {};
+
+	Database.prototype.hookSeriesCreate = function (seriesKey, server, service) {
+		return new TimeSeries(seriesTypes["sec150"]);
+	};
 
 	Database.prototype.getServer = function (serverId) {
 		return this.db.server[serverId];
@@ -306,7 +312,7 @@
 		}
 	};
 
-	var TimeSeries = Mondb["TimeSeries"] = function (type) {
+	var TimeSeries = Mondb["TimeSeries"] = function TimeSeries(type) {
 		this.store = [];
 		this.type = type.name;
 		this.maxAge = type.maxAge;
@@ -367,6 +373,10 @@
 		}
 
 		return this.store.slice(firstIndex, lastIndex);
+	};
+
+	TimeSeries.prototype.getCacheData = function () {
+		return this.store;
 	};
 
 	var NullTimeSeries = Mondb["NullTimeSeries"] = {
