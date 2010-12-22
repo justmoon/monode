@@ -169,38 +169,29 @@ $((function () {
 
 		switch (service.type) {
 		case 5:
-			// CPU Graph
-			data = [];
-			if (timeseries = Monode.db.series[server.id+'-cpuusr']) {
-				endTime = (new Date()).getTime();
-				startTime = endTime - 90000;
+			endTime = (new Date()).getTime();
+			startTime = endTime - 90000;
 
-				data.push(timeseries.getRange(startTime));
+			// CPU Graph
+			if (timeseries = Monode.db.series[server.id+'-cpuusr']) {
+				timeseries.getRange(startTime, null, function (a) {
+					$.plot(serviceEl.find(".cpugraph"), [a]);
+				});
 			}
 
-			$.plot(serviceEl.find(".cpugraph"), data);
-
 			// Mem Graph
-			data = [];
 			if (timeseries = Monode.db.series[server.id+'-mempct']) {
-				endTime = (new Date()).getTime();
-				startTime = endTime - 90000;
-
-				data.push(timeseries.getRange(startTime));
-
-				$.plot(serviceEl.find(".memgraph"), data);
+				timeseries.getRange(startTime, null, function (a) {
+					$.plot(serviceEl.find(".memgraph"), [a]);
+				});
 			}
 
 
 			// Swap Graph
-			data = [];
 			if (timeseries = Monode.db.series[server.id+'-swappct']) {
-				endTime = (new Date()).getTime();
-				startTime = endTime - 90000;
-
-				data.push(timeseries.getRange(startTime));
-
-				$.plot(serviceEl.find(".swapgraph"), data);
+				timeseries.getRange(startTime, null, function (a) {
+					$.plot(serviceEl.find(".swapgraph"), [a]);
+				});
 			}
 
 			break;
@@ -261,17 +252,18 @@ $((function () {
 		var overviewGraphEl = $('#overview_graph');
 
 		if (overviewGraphEl.is(":visible")) {
-			var timeseries, data, startTime, endTime;
-			data = [];
+			var timeseries, startTime, endTime;
+
+			endTime = (new Date()).getTime();
+			startTime = endTime - 90000;
+
 			for (var i in Monode.db.db.server) {
 				if (timeseries = Monode.db.series[i+'-cpuusr']) {
-					endTime = (new Date()).getTime();
-					startTime = endTime - 90000;
-
-					data.push(timeseries.getRange(startTime));
+					timeseries.getRange(startTime, null, function (a) {
+						$.plot(overviewGraphEl, [a], Monode.overviewGraphOptions);
+					});
 				}
 			}
-			$.plot(overviewGraphEl, data, Monode.overviewGraphOptions);
 		}
 
 		Monode.updateOverview();
@@ -285,34 +277,65 @@ $((function () {
 		if (service.type == 5) {
 			serviceEl.find('.graph div').remove();
 
-			var endTime = service.updated;
-			var startTime = endTime - 90000;
+			var series,
+				endTime = service.updated,
+				startTime = endTime - 90000;
 
 			// CPU sparkline
-			var cpuSysData = {
-				stack: 0,
-				data: Monode.db
-					.getSeries('cpusys', server, service)
-					.getRange(startTime),
-				lines: {
-					lineWidth: 0,
-					fillColor: "#777"
-				}
-			};
-			var cpuUsrData = {
-				stack: 0,
-				data: Monode.db
-					.getSeries('cpuusr', server, service)
-					.getRange(startTime),
-				lines: {
-					fillColor: "#555"
-				}
-			};
-
-			if (cpuUsrData.data.length > 2 && cpuSysData.data.length > 2) {
-				var cpuRedDot = {
+			series = Monode.db.getSeries('cpusys', server, service);
+			series.getRange(startTime, null, function (a) {
+				var cpuSysData = {
 					stack: 0,
-					data: [ [ cpuSysData.data[cpuSysData.data.length - 1][0], 0 ] ],
+					data: a,
+					lines: {
+						lineWidth: 0,
+						fillColor: "#777"
+					}
+				};
+
+				series = Monode.db.getSeries('cpuusr', server, service);
+				series.getRange(startTime, null, function (a) {
+					var cpuUsrData = {
+						stack: 0,
+						data: a,
+						lines: {
+							fillColor: "#555"
+						}
+					};
+					
+					if (cpuUsrData.data.length > 2 && cpuSysData.data.length > 2) {
+						var cpuRedDot = {
+							stack: 0,
+							data: [ [ cpuSysData.data[cpuSysData.data.length - 1][0], 0 ] ],
+							lines: {
+								show: false
+							},
+							points: {
+								show: true,
+								radius: 1,
+								fillColor: '#ff0000'
+							},
+							color: '#ff0000'
+						};
+
+						Monode.drawOverviewSparkline(
+							serviceEl.find('.graph.cpu'),
+							[cpuSysData, cpuUsrData, cpuRedDot], {
+								xaxis: {
+									min: startTime,
+									max: endTime
+								}
+							}
+						);
+					}
+				});
+			});
+
+			// Memory sparkline
+			series = Monode.db.getSeries('mempct', server, service);
+			series.getRange(startTime, null, function (memData) {
+				var memRedDot = {
+					data: [ memData[memData.length - 1] ],
 					lines: {
 						show: false
 					},
@@ -324,45 +347,17 @@ $((function () {
 					color: '#ff0000'
 				};
 
-				Monode.drawOverviewSparkline(
-					serviceEl.find('.graph.cpu'),
-					[cpuSysData, cpuUsrData, cpuRedDot], {
-						xaxis: {
-							min: startTime,
-							max: endTime
+				if (memData.length > 2) {
+					Monode.drawOverviewSparkline(
+						serviceEl.find('.graph.mem'), [memData, memRedDot], {
+							xaxis: {
+								min: startTime,
+								max: endTime
+							}
 						}
-					}
-				);
-			}
-
-			// Memory sparkline
-			var memData = Monode.db
-				.getSeries('mempct', server, service)
-				.getRange(startTime);
-
-			var memRedDot = {
-				data: [ memData[memData.length - 1] ],
-				lines: {
-					show: false
-				},
-				points: {
-					show: true,
-					radius: 1,
-					fillColor: '#ff0000'
-				},
-				color: '#ff0000'
-			};
-
-			if (memData.length > 2) {
-				Monode.drawOverviewSparkline(
-					serviceEl.find('.graph.mem'), [memData, memRedDot], {
-						xaxis: {
-							min: startTime,
-							max: endTime
-						}
-					}
-				);
-			}
+					);
+				}
+			});
 		}
 
 		serviceEl.addClass(Math.round(service.status) == 0 ? "ok" : "notok");

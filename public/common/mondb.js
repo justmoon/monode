@@ -60,6 +60,7 @@
 		this.db = db;
 
 		// Read series cache
+		console.log(this.db.seriesCache);
 		for (i in this.db.seriesCache) {
 			this.series[i] = new TimeSeries(seriesTypes["sec150"]);
 			this.series[i].store = this.db.seriesCache[i];
@@ -92,10 +93,8 @@
 		this.db.seriesCache = {};
 
 		for (var i in this.series) {
-			var cache;
-			if (cache = this.series[i].getCacheData()) {
-				this.db.seriesCache[i] = cache;
-			}
+			var cache = this.series[i].getCacheData();
+			if (cache) this.db.seriesCache[i] = cache;
 		}
 
 		return this.db;
@@ -343,7 +342,7 @@
 		}
 	};
 
-	TimeSeries.prototype.getRange = function (from, to) {
+	TimeSeries.prototype.getRange = function (from, to, callback) {
 		var i, firstIndex, lastIndex;
 
 		if (!this.store.length) return [];
@@ -372,7 +371,7 @@
 			lastIndex = this.store.length-1;
 		}
 
-		return this.store.slice(firstIndex, lastIndex);
+		callback(this.store.slice(firstIndex, lastIndex));
 	};
 
 	TimeSeries.prototype.getCacheData = function () {
@@ -383,7 +382,33 @@
 		load: function (data) {},
 		tick: function (t, x) {},
 		cull: function () {},
-		getRange: function (from, to) {return [];}
+		getRange: function (from, to, callback) {callback([]);}
+	};
+
+	var CachingTimeSeries = Mondb.CachingTimeSeries = function CachingTimeSeries(backend) {
+		this.cache = new Mondb.TimeSeries(Mondb.seriesTypes["sec150"].name);
+		this.persistent = backend;
+	};
+
+	CachingTimeSeries.prototype.load = function (data) {
+		this.cache.load(data);
+	};
+
+	CachingTimeSeries.prototype.tick = function (t, x) {
+		this.cache.tick(t, x);
+		this.persistent.tick(t, x);
+	};
+
+	CachingTimeSeries.prototype.cull = function () {
+		this.cache.cull();
+	};
+
+	CachingTimeSeries.prototype.getRange = function (from, to, callback) {
+		this.cache.getRange(from, to, callback);
+	};
+
+	CachingTimeSeries.prototype.getCacheData = function () {
+		return this.cache.getCacheData();
 	};
 
 	var ServerDressing = Mondb["ServerDressing"] = function () {};
