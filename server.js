@@ -1,6 +1,3 @@
-require.paths.unshift(__dirname + "/public/common");
-require.paths.unshift(__dirname + "/lib");
-
 // Vendor dependencies
 var http = require('http'),
     sys  = require('sys'),
@@ -10,15 +7,14 @@ var http = require('http'),
 	nodeStatic = require('node-static'),
 	querystring = require('querystring'),
 	xml2js = require('xml2js'),
-	mongoose = require('mongoose').Mongoose;
+	mongoose = require('mongoose');
 
 // Internal dependencies
-var Mondb = require('mondb');
-var MondbPersist = require('mondb-persist');
+var Mondb = require('./public/common/mondb');
+var MondbPersist = require('./lib/mondb-persist');
 
 // Setup
 var db = mongoose.connect('mongodb://localhost/monode');
-var User = db.model("User");
 
 var config = yaml.eval(fs.readFileSync('config.yml').toString());
 

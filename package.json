@@ -1,0 +1,23 @@
+{
+  "author": "Stefan Thomas <justmoon@members.fsf.org> (http://www.justmoon.net/)",
+  "name": "monode",
+  "description": "Multi-instance realtime monit manager using Node.js",
+  "version": "0.0.1",
+  "repository": {
+    "type": "git",
+    "url": "git://github.com/justmoon/bzing.git"
+  },
+  "main": "server.js",
+  "dependencies": {
+    "yaml": "*",
+    "socket.io": "*",
+    "node-static": "*",
+    "xml2js": "*",
+    "mongoose": "*"
+  },
+  "devDependencies": {},
+  "optionalDependencies": {},
+  "engines": {
+    "node": "*"
+  }
+}

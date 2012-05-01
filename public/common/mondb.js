@@ -60,7 +60,6 @@
 		this.db = db;
 
 		// Read series cache
-		console.log(this.db.seriesCache);
 		for (i in this.db.seriesCache) {
 			this.series[i] = new TimeSeries(seriesTypes["sec150"]);
 			this.series[i].store = this.db.seriesCache[i];
@@ -166,6 +165,7 @@
 				break;
 
 			case 3: // TYPE_PROCESS
+				
 				break;
 
 			case 4: // TYPE_HOST
@@ -241,7 +241,7 @@
 	};
 
 	/**
-	 * Send a tick to a time series.
+	 * Get a time series object.
 	 *
 	 * This function is specifically intended to be monkey patched to change
 	 * its behavior.
